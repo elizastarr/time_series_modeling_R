@@ -1,0 +1,112 @@
+---
+title: "question2.1"
+output: html_notebook
+---
+
+
+```{r}
+data = get(load('../datasets/GoldenGate.RData'))
+ts.gg<- ts(data[,'traffic'], start=1968, frequency=12)
+```
+```{r}
+ggtsdisplay(ts.gg)
+```
+
+# a
+For the time series selected generate time series which are corrected for trend, for seasonality and for
+both trend and seasonality. Perform an Exploratory Data Analysis (including fingerprinting!) for the results!
+```{r}
+# remove trend
+diff1.gg <- diff(ts.gg, differences = 1)
+ggtsdisplay(diff1.gg)
+```
+```{r}
+#remove seasonality
+
+nsdiffs(ts.gg)
+sd1.gg <- diff(ts.gg, lag=12, differences = 1)
+ggtsdisplay(sd1.gg)
+```
+
+```{r}
+# remove trend and seasonality
+
+add.gg <- decompose(ts.gg, type='additive')
+autoplot(add.gg)
+```
+```{r}
+ggtsdisplay(add.gg$random)
+```
+
+# b
+For the generated time series, corrected both for trend and seasonality select an adequate Exponential
+Smoothing Model to predict future values.
+Fit the model by estimating its parameters and give an interpretation for the parametervalues obtained.
+Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit
+measures such as RMSE, MAE and MAPE.
+```{r}
+trend <- diff(ts.gg, lag=12, differences = 1)
+trend.season <- diff(trend, lag=12, differences = 1)
+```
+
+
+```{r}
+#fc <- ses(ts.gg, h=15)
+gg.ses1 <- HoltWinters(trend.season, alpha=0.2, beta=FALSE, gamma=FALSE)
+autoplot(gg.ses1$fitted)
+plot(gg.ses1)
+```
+
+```{r}
+with(gg.ses1,accuracy(fitted,x))
+```
+
+```{r}
+checkresiduals(gg.ses1)
+```
+
+# c
+For the generated time series, corrected only for seasonality select an adequate Exponential Smoothing
+Model to predict future values.
+Fit the model by estimating its parameters and give an interpretation for the parametervalues obtained. Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit
+measures such as RMSE, MAE and MAPE.
+
+```{r}
+season <- diff(ts.gg, lag=12, differences = 1)
+gg.ses1 <- HoltWinters(season, alpha=0.2, beta=FALSE, gamma=FALSE)
+plot(gg.ses1)
+with(gg.ses1,accuracy(fitted,x))
+checkresiduals(gg.ses1)
+```
+
+# d
+
+For the generated time series, corrected only for trend select an adequate Exponential Smoothing Model
+to predict future values.
+Fit the model by estimating its parameters and give an interpretation for the parametervalues obtained.
+Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit
+measures such as RMSE, MAE and MAPE.
+
+```{r}
+trend <- diff(ts.gg, differences = 1)
+gg.ses1 <- HoltWinters(trend, alpha=0.2, beta=FALSE, gamma=FALSE)
+plot(gg.ses1)
+with(gg.ses1,accuracy(fitted,x))
+checkresiduals(gg.ses1)
+```
+
+# e
+
+For the original time series, not corrected for trend and seasonality, select an adequate Exponential
+Smoothing Model to predict future values.
+Fit the model by estimating its parameters and give an interpretation for the parametervalues obtained.
+Verify the model on the basis of the residuals, their (partial) autocorrelations and Goodness-of-Fit
+measures such as RMSE, MAE and MAPE.
+
+```{r}
+gg.ses1 <- HoltWinters(ts.gg, alpha=0.2, beta=FALSE, gamma=FALSE)
+plot(gg.ses1)
+with(gg.ses1,accuracy(fitted,x))
+checkresiduals(gg.ses1)
+```
+

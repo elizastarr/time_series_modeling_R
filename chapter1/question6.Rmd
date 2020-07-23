@@ -1,0 +1,39 @@
+---
+title: "question6"
+output: ''
+---
+# a.
+For a number of time series realizations fingerprints in the time domain are given by means of their
+autocorrelation functions. However, the order of presentations of time series and autocorrelation
+functions is randomized. Identify the connection between the time series TS1, TS2, TS3 and the
+autocorrelation functions AC1, AC2, AC3. Explicitly motivate your choice!
+
+TS1:AC2 because it's the smoothest series, showing mostly just trend. It looks like the time series below, which has a similar AC plot.
+
+```{r}
+data = ts(get(load('../datasets/broadband.RData')))
+ggtsdisplay(data[,'Market_1'], plot.type = 'spectrum')
+```
+
+TS3:AC1 because it shows pretty regular seasonality, which tends to appear in the AC plot as a clear up and down pattern that appear more drastic than a smoother timeseries like TS2. Therefore, TS2:AC3 because the auto correlation changes appear more smooth and is less significant. This lines up because TS2 seems to have less trend/cycle and seasonality than TS3, which has more significant ACs.
+
+```{r}
+data = ts(get(load('../datasets/catalog.RData')))
+
+# similar to TS3:AC1
+ggtsdisplay(data[,'men'], plot.type = 'spectrum')
+
+# similar to TS2:AC3
+ts.ma <- ma(data[,'men'], order = 5)
+ggtsdisplay(ts.ma)
+```
+
+#b.
+For a number of time series realizations the fingerprints in the frequency domain are given by means of
+their smoothed periodograms. However, the order of presentations of time series and smoothed
+periodograms is randomized. Identify the connection between the time series A, B, C and the smoothed
+periodograms P1, P2, P3. Explicitly motivate your choice!
+
+Time series C belongs to Periodigram P2 because this time series shows the least trend, which is captured in low frequencies of which P2 does not have much of.
+
+P3 belongs to the time series with a cycle or seasonal pattern around frequency 0.5 and a smaller overall trend as spectrum = 20 when frequency = 0, unlike the higher spectrum value of 100 at frequency = 0 for P1. Because TSA seems to have a higher over all trend, I will pair it with P1, while that leaves TSC for P3.

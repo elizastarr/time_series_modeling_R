@@ -1,0 +1,140 @@
+---
+title: "question1.1"
+output: html_notebook
+---
+
+```{r}
+data = get(load('../datasets/airline.RData'))
+data
+```
+
+---
+
+#a.
+Make a time sequence plot of the selected data and perform an Exploratory Data Analysis: Characterize the main properties of the time series, such as trend, seasonal variation, cyclic variation, irregular variations, sudden changes in the data and/or possible outliers.
+
+```{r}
+ts.airline <- ts(data, start=1949, frequency=12)
+autoplot(ts.airline[,'passenger'])
+```
+There is a clear upward trend and yearly seasonality. There is no indication of cyclic variation, irregularites, or outliers.
+
+---
+
+#b. 
+If the time series selected exhibits trend, describe ways to correct for it. Explain how finite differencing might correct for trend. 
+Experiment with the effect of finite differencing on the data set selected and perform an Exploratory Data Analysis on the result obtained. Do you expect for the data set selected that it is needed to do this finite differencing more than once to correct for trend? Check your conjecture with R!
+
+This is Chapter 6 in the TXBK. One way to decompose the timeseries is to use the moving average method to estimate the trend-cycle.
+```{r}
+library(forecast)
+autoplot(ts.airline[,'passenger'], series="Data") +
+  autolayer(ma(ts.airline[,'passenger'], 5), series="5-MA") 
+
+```
+
+Lec01b: Finite differencing to correct trends. It's the Discrete version of differentiation. Higher order differencing might be needed with nonlinear trend:
+y(t) = x(t)-x(t-1)
+
+
+```{r}
+#Ch8.1: This process of using a sequence of KPSS tests to determine the appropriate number of first differences is carried out by the function ndiffs()
+#ndifs()suggests adequate order for stationarity!
+ndiffs(ts.airline[,'passenger'])
+```
+```{r}
+ggtsdisplay(ts.airline[,'passenger'])
+```
+
+```{r}
+# 1x finite differencing
+diff1.airline <- diff(ts.airline[,'passenger'], differences = 1)
+ggtsdisplay(diff1.airline)
+```
+
+```{r}
+#2x finite differencing
+diff2.airline <- diff(ts.airline[,'passenger'],differences = 2)
+ggtsdisplay(diff2.airline)
+```
+
+#### 1x finite differencing is maybe the best. Not sure.
+
+---
+
+# c.
+If the time series selected exhibits seasonality, determine the period of seasonality and argue if an additive or a multiplicative seasonal model seems most adequate.
+
+### A multiplicative seasonal model seems more adequate for this annual pattern.
+When the variation in the seasonal pattern, or the variation around the trend-cycle, appears to be proportional to the level of the time series, then a multiplicative decomposition is more appropriate. 
+
+```{r}
+mult.airline <- decompose(ts.airline[,'passenger'], type='multiplicative')
+autoplot(mult.airline)
+```
+
+# d.
+Explain how seasonal differencing might correct for seasonality of the time series.
+Experiment with the effect of seasonal differencing on the data set selected using R and perform an Exploratory Data Analysis on the result obtained. Do you expect for the data set selected that it is needed to perform seasonal differencing more than once to correct for seasonality? Check your conjecture with R!
+
+Finite differencing, tailored for assumed periodicity, s !
+Higher order differencing might be needed with nonlinear patterns.
+Fits consistently in the SARIMA-framework.
+nsdifs()suggests adequate order of seasonal differences!
+
+```{r}
+nsdiffs(ts.airline[,'passenger'])
+```
+```{r}
+# THIS GRAPH IS WHAT THE SLIDES LOOKED LIKE TOO
+sd1.airline <- diff(ts.airline[,'passenger'], lag=12, differences = 2)
+ggtsdisplay(sd1.airline)
+```
+
+# e.
+To correct the time series selected both for trend and seasonality combine both finite and seasonal differencing, as applied in part b. and d., to the original data and perform an Exploratory Data Analysis on the result obtained. Are trend and seasonality adequately removed? Does the resulting time series look like random noise or is it still containing any structure?
+
+```{r}
+# Looks like noise, so success!
+trend.airline <- diff(ts.airline[,'passenger'], differences = 1)
+season.trend.airline <- diff(trend.airline, lag=12, differences = 1)
+ggtsdisplay(season.trend.airline)
+```
+
+# f.
+If the original time series selected exhibits seasonality, perform an adequate seasonal decomposition using the “decompose”-function. Obtain estimates for the Seasonal Factors and explain how they are to be used.
+Also perform an Exploratory Data Analysis on the residuals of errors: anything special detected?
+
+```{r}
+# Obtain estimates for the Seasonal Factors and explain how they are to be used
+mult.airline <- decompose(ts.airline[,'passenger'], type='multiplicative')
+mult.airline$figure
+# the figure values model the repeated seasonal pattern. See that there are 12 values, one for each month.
+```
+```{r}
+ggtsdisplay(mult.airline$figure)
+```
+
+```{r}
+# residuals of errors
+# doesn't look fully random
+# there also may be a few outliers (1959, 1960)
+ggtsdisplay(mult.airline$random)
+```
+```{r}
+# normally distributed for naive model
+checkresiduals(season.trend.airline)
+```
+
+# g.
+Repeat the previous analysis by intentionally (!) applying an inadequate seasonal decomposition to the
+time series selected, i.e. a multiplicative model where an additive model is expected or the other way
+around. Try to explain special features in the results obtained!
+
+```{r}
+# the additive model is far worse than multiplicative. The residuals do not look random at all
+add.decom <- decompose(ts.airline[,'passenger'], type='additive')
+autoplot(add.decom)
+ggtsdisplay(add.decom$random)
+```
+

@@ -1,0 +1,16 @@
+---
+title: "question6"
+output: ''
+---
+# a.
+For a number of time series realizations fingerprints in the time domain are given by means of their
+autocorrelation functions. However, the order of presentations of time series and autocorrelation
+functions is randomized. Identify the connection between the time series TS1, TS2, TS3 and the
+autocorrelation functions AC1, AC2, AC3. Explicitly motivate your choice!
+
+TS1:AC2 because it's the smoothest series, showing mostly just trend
+
+```{r}
+data = ts(get(load('../datasets/ARMAsimulations.RData')))
+```
+
